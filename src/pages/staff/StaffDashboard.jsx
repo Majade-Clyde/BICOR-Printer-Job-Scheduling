@@ -77,7 +77,7 @@ const StaffDashboard = () => {
         </div>
         <div className="hero-artwork">
           <img
-            src="/jaguar-hero.png"
+            src={`${import.meta.env.BASE_URL}jaguar-hero.png`}
             alt="BICOR Jaguar"
             className="hero-jaguar-img"
           />

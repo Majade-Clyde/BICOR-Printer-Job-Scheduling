@@ -86,7 +86,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="sidebar-brand">
           <div className="sidebar-logo-container">
             <img
-              src="/bicor-logo.png"
+              src={`${import.meta.env.BASE_URL}bicor-logo.png`}
               alt="BICOR Printer Job Scheduling Logo"
               className="sidebar-bicor-logo"
             />

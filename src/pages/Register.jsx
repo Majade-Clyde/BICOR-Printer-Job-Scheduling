@@ -72,7 +72,7 @@ const Register = () => {
         <div className="auth-header">
           <div className="auth-logo-container">
             <img
-              src="/bicor-logo.png"
+              src={`${import.meta.env.BASE_URL}bicor-logo.png`}
               alt="BICOR Logo"
               className="auth-bicor-logo"
             />

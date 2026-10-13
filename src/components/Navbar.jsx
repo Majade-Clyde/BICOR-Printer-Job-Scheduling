@@ -68,7 +68,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
         {!user && (
           <Link to={getDashboardLink()} className="navbar-brand">
             <img
-              src="/bicor-logo.png"
+              src={`${import.meta.env.BASE_URL}bicor-logo.png`}
               alt="BICOR Logo"
               className="navbar-brand-logo"
             />
