@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from './supabase.js';
 
 export const STORAGE_BUCKET = 'print-documents';
 export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
@@ -19,6 +19,7 @@ export const ALLOWED_EXTENSIONS = [
 
 export const ALLOWED_MIME_TYPES = [
   'application/pdf',
+  'application/x-pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-powerpoint',
@@ -27,8 +28,47 @@ export const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'text/plain',
   'image/jpeg',
+  'image/jpg',
+  'image/pjpeg',
   'image/png',
 ];
+
+export const MIME_MAP = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  txt: 'text/plain',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+};
+
+/**
+ * Normalizes mobile and browser MIME type aliases to canonical Supabase-compatible MIME types
+ */
+export const normalizeMimeType = (mimeType, fileName = '') => {
+  const rawType = (mimeType || '').toLowerCase().trim();
+  const ext = (fileName || '').split('.').pop()?.toLowerCase() || '';
+
+  // Canonicalize JPG aliases to image/jpeg
+  if (rawType === 'image/jpg' || rawType === 'image/pjpeg' || ext === 'jpg' || ext === 'jpeg') {
+    return 'image/jpeg';
+  }
+  if (rawType === 'image/png' || ext === 'png') {
+    return 'image/png';
+  }
+  if (rawType === 'application/pdf' || rawType === 'application/x-pdf' || ext === 'pdf') {
+    return 'application/pdf';
+  }
+  if (ext && MIME_MAP[ext]) {
+    return MIME_MAP[ext];
+  }
+  return rawType || 'application/octet-stream';
+};
 
 /**
  * Validates file format and size
@@ -38,7 +78,7 @@ export const validateDocumentFile = (file) => {
     return { valid: false, error: 'No file selected.' };
   }
 
-  // Check file size
+  // Check file size (max 20 MB)
   if (file.size > MAX_FILE_SIZE_BYTES) {
     return {
       valid: false,
@@ -47,7 +87,16 @@ export const validateDocumentFile = (file) => {
   }
 
   // Check file extension
-  const extension = file.name.split('.').pop()?.toLowerCase();
+  let extension = file.name?.split('.').pop()?.toLowerCase();
+
+  // If file has no extension (can happen on some mobile camera captures), infer from MIME type
+  if (!extension || extension === file.name?.toLowerCase()) {
+    const rawType = (file.type || '').toLowerCase();
+    if (rawType.includes('jpeg') || rawType.includes('jpg')) extension = 'jpg';
+    else if (rawType.includes('png')) extension = 'png';
+    else if (rawType.includes('pdf')) extension = 'pdf';
+  }
+
   if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
     return {
       valid: false,
@@ -55,7 +104,7 @@ export const validateDocumentFile = (file) => {
     };
   }
 
-  return { valid: true };
+  return { valid: true, extension };
 };
 
 /**
@@ -100,27 +149,71 @@ export const uploadPrintDocument = async (file, userId) => {
     throw new Error('User ID is required for document storage.');
   }
 
-  // Sanitize filename: alphanumeric, dashes, underscores, dots
-  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const uniquePath = `${userId}/${Date.now()}_${cleanName}`;
+  // Clean and safe storage filename (alphanumeric, dashes, underscores)
+  const ext = (file.name.split('.').pop() || validation.extension || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const rawBase = file.name.includes('.') ? file.name.substring(0, file.name.lastIndexOf('.')) : file.name;
+  const safeBase = rawBase.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').substring(0, 60) || 'document';
+  const cleanStorageFileName = `${safeBase}.${ext}`;
+  const uniquePath = `${userId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanStorageFileName}`;
 
-  // Upload to Supabase Storage
+  // Canonicalize MIME type (e.g. image/jpg -> image/jpeg)
+  const canonicalMimeType = normalizeMimeType(file.type, file.name);
+
+  // Ensure file payload carries the canonical MIME type for multipart upload on mobile
+  let uploadPayload = file;
+  if (file.type !== canonicalMimeType) {
+    try {
+      uploadPayload = new File([file], cleanStorageFileName, { type: canonicalMimeType });
+    } catch {
+      uploadPayload = new Blob([file], { type: canonicalMimeType });
+    }
+  }
+
+  // Upload to Supabase Storage with explicit contentType
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .upload(uniquePath, file, {
+    .upload(uniquePath, uploadPayload, {
+      contentType: canonicalMimeType,
       cacheControl: '3600',
       upsert: false,
     });
 
   if (error) {
     console.error('Supabase storage upload error:', error);
-    // Provide friendly error message for common issues
-    if (error.message?.includes('Bucket not found') || error.statusCode === '404') {
+
+    const errorMsg = error.message || '';
+    const errorDetails = error.error || '';
+    const statusCode = String(error.statusCode || error.status || '');
+
+    if (errorMsg.includes('Bucket not found') || statusCode === '404' || error.code === 'NoSuchBucket') {
       throw new Error(
         "Storage bucket 'print-documents' does not exist in Supabase. Please run the migration script 'supabase-storage-setup.sql' in your Supabase SQL Editor."
       );
     }
-    throw new Error(`File upload failed: ${error.message || 'Unknown error'}`);
+
+    if (errorMsg.includes('violates row-level security policy') || statusCode === '403' || error.code === 'AccessDenied') {
+      throw new Error(
+        "Storage permission denied. Ensure you are signed in and have run the storage policies migration in 'supabase-storage-setup.sql'."
+      );
+    }
+
+    if (errorMsg.includes('mime') || errorDetails.includes('mime') || statusCode === '415' || error.code === 'InvalidMimeType') {
+      throw new Error(
+        `File format rejected by storage (${errorMsg || 'MIME type not allowed'}). Supported formats: PDF, Word, Excel, PPT, TXT, and JPG/PNG images.`
+      );
+    }
+
+    if (errorMsg.includes('exceeded') || errorMsg.includes('too large') || statusCode === '413') {
+      throw new Error(
+        `File size exceeds storage bucket limit (maximum 20 MB).`
+      );
+    }
+
+    const friendlyMsg = errorMsg && errorMsg !== 'HTTP 400 error'
+      ? errorMsg
+      : (errorDetails || 'Storage server rejected the file (HTTP 400). Please check format and size.');
+
+    throw new Error(`File upload failed: ${friendlyMsg}`);
   }
 
   // Get public / storage URL reference
@@ -132,7 +225,7 @@ export const uploadPrintDocument = async (file, userId) => {
     filePath: data.path,
     fileName: file.name,
     fileSize: file.size,
-    fileType: file.type || `application/${file.name.split('.').pop()}`,
+    fileType: canonicalMimeType,
     fileUrl: publicUrlData?.publicUrl || null,
   };
 };

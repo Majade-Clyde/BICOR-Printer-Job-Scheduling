@@ -306,7 +306,18 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
           type="file"
           id="realDocumentUploadInput"
           multiple
-          accept={ALLOWED_EXTENSIONS.map(ext => `.${ext}`).join(',')}
+          accept={[
+            ...ALLOWED_EXTENSIONS.map(ext => `.${ext}`),
+            'image/*',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/plain'
+          ].join(',')}
           onChange={handleFileChange}
           style={{ display: 'none' }}
           disabled={loading}
