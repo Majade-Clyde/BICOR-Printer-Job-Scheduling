@@ -411,3 +411,5 @@ To see the complete workflow in action:
   * This is intended security behavior. The `ProtectedRoute` redirects any non-operator back to `/student`.
 * **Issue: Realtime changes not updating automatically**
   * Check that step 8 in the SQL script (`ALTER PUBLICATION supabase_realtime ADD TABLE public.print_jobs;`) was executed in Supabase. You can also click the manual **"Refresh"** button at any time.
+#   B I C O R - P r i n t e r - J o b - S c h e d u l i n g  
+ 
