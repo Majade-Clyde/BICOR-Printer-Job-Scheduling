@@ -265,13 +265,17 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      // Check if account is deactivated by an administrator
-      if (userProfile?.status === 'inactive' && userProfile?.role !== 'admin') {
+      // Check if account is deactivated or deleted by an administrator
+      if ((userProfile?.status === 'inactive' || userProfile?.status === 'deleted') && userProfile?.role !== 'admin') {
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
         setRole(null);
-        throw new Error('Your account has been deactivated by an administrator. Please contact support to reactivate your account.');
+        throw new Error(
+          userProfile?.status === 'deleted'
+            ? 'This account has been deleted by an administrator. Please register for a new account or contact support.'
+            : 'Your account has been deactivated by an administrator. Please contact support to reactivate your account.'
+        );
       }
 
       const effectiveRole = userProfile?.role || 'student';

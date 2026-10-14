@@ -111,14 +111,14 @@ const Register = () => {
           <div className="form-group">
             <label className="form-label" htmlFor="registerEmail">
               <Mail size={20} />
-              <span>School Email</span>
+              <span>Email</span>
               <span className="required-star">*</span>
             </label>
             <input
               id="registerEmail"
               type="email"
               className="form-input"
-              placeholder="e.g. maria.santos@school.edu"
+              placeholder="Enter your email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading || success}

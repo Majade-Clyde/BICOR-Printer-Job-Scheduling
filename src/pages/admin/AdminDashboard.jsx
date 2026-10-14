@@ -93,8 +93,8 @@ const AdminDashboard = () => {
   }, [fetchData]);
 
   const stats = useMemo(() => ({
-    totalStudents: allProfiles.filter(p => ['student', 'user'].includes(p.role?.toLowerCase())).length,
-    totalStaff: allProfiles.filter(p => ['staff', 'operator'].includes(p.role?.toLowerCase())).length,
+    totalStudents: allProfiles.filter(p => p.status !== 'deleted' && ['student', 'user'].includes(p.role?.toLowerCase())).length,
+    totalStaff: allProfiles.filter(p => p.status !== 'deleted' && ['staff', 'operator'].includes(p.role?.toLowerCase())).length,
     pending: allJobs.filter(j => j.status?.toLowerCase() === 'pending').length,
     printing: allJobs.filter(j => j.status?.toLowerCase() === 'printing').length,
     completed: allJobs.filter(j => j.status?.toLowerCase() === 'completed').length,

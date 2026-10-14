@@ -6,11 +6,11 @@ import ErrorMessage from '../../components/ErrorMessage';
 import {
   Search, RefreshCw, UserCheck, UserX, UserPlus, Plus,
   UserCog, Edit2, X, Save, Eye, EyeOff, Mail, Lock, User,
-  AlertCircle, ShieldCheck
+  AlertCircle, ShieldCheck, Trash2, ShieldAlert
 } from 'lucide-react';
 
 const AdminStaff = () => {
-  const { createStaffAccount } = useAuth();
+  const { user: currentUser, createStaffAccount } = useAuth();
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,6 +35,11 @@ const AdminStaff = () => {
   const [editName, setEditName] = useState('');
   const [saving, setSaving] = useState(false);
   const [editModalError, setEditModalError] = useState('');
+
+  // Delete staff modal state
+  const [deletingStaff, setDeletingStaff] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteModalError, setDeleteModalError] = useState('');
 
   const fetchStaff = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
@@ -70,10 +75,14 @@ const AdminStaff = () => {
         if (editingStaff && !saving) {
           setEditingStaff(null);
         }
+        if (deletingStaff && !deleteLoading) {
+          setDeletingStaff(null);
+          setDeleteModalError('');
+        }
       }
     };
 
-    if (showCreateModal || editingStaff) {
+    if (showCreateModal || editingStaff || deletingStaff) {
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
@@ -82,7 +91,7 @@ const AdminStaff = () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [showCreateModal, editingStaff, creating, saving]);
+  }, [showCreateModal, editingStaff, deletingStaff, creating, saving, deleteLoading]);
 
   const handleOpenCreateModal = () => {
     setNewStaffName('');
@@ -167,6 +176,92 @@ const AdminStaff = () => {
       setError(err.message || 'Failed to remove staff privileges.');
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleOpenDeleteModal = (staff) => {
+    if (!staff?.id) return;
+    if (staff.id === currentUser?.id) {
+      setError('You cannot delete your own administrator account.');
+      return;
+    }
+    if (staff.role === 'admin') {
+      setError('Administrator accounts cannot be deleted.');
+      return;
+    }
+    setDeletingStaff(staff);
+    setDeleteModalError('');
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (deleteLoading) return;
+    setDeletingStaff(null);
+    setDeleteModalError('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingStaff?.id) return;
+
+    if (deletingStaff.id === currentUser?.id) {
+      setDeleteModalError('You cannot delete your own administrator account.');
+      return;
+    }
+
+    if (deletingStaff.role === 'admin') {
+      setDeleteModalError('Administrator accounts cannot be deleted.');
+      return;
+    }
+
+    setDeleteLoading(true);
+    setDeleteModalError('');
+
+    try {
+      let deleted = false;
+      let rpcErrorDetail = '';
+
+      try {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('admin_delete_user_account', {
+          target_user_id: deletingStaff.id
+        });
+
+        if (!rpcErr && (rpcData?.success || rpcData === true)) {
+          deleted = true;
+        } else if (rpcErr) {
+          rpcErrorDetail = rpcErr.message || String(rpcErr);
+          console.warn('RPC account deletion notice:', rpcErr);
+        }
+      } catch (rpcEx) {
+        rpcErrorDetail = rpcEx.message || String(rpcEx);
+        console.warn('RPC account deletion exception:', rpcEx);
+      }
+
+      if (!deleted) {
+        if (
+          rpcErrorDetail &&
+          (rpcErrorDetail.toLowerCase().includes('access denied') ||
+           rpcErrorDetail.toLowerCase().includes('administrators cannot') ||
+           rpcErrorDetail.toLowerCase().includes('cannot delete administrator'))
+        ) {
+          throw new Error(rpcErrorDetail);
+        }
+
+        throw new Error(
+          rpcErrorDetail ||
+          'Server-side account deletion function not found. Please run the "supabase-admin-delete-user.sql" migration in your Supabase SQL Editor to enable secure server-side account deletion.'
+        );
+      }
+
+      const targetName = deletingStaff.full_name || deletingStaff.email;
+      setDeletingStaff(null);
+      setDeleteModalError('');
+      setSuccessMsg(`Staff account for "${targetName}" has been successfully deleted.`);
+      setTimeout(() => setSuccessMsg(''), 5000);
+      await fetchStaff(true);
+    } catch (err) {
+      console.error('Staff account deletion failed:', err);
+      setDeleteModalError(err.message || 'Failed to delete staff account. Please verify your administrative permissions.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -286,9 +381,11 @@ const AdminStaff = () => {
   };
 
   const filteredStaff = staffList.filter(s =>
-    !searchQuery.trim() ||
-    s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    s.status !== 'deleted' && (
+      !searchQuery.trim() ||
+      s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   if (loading) return <Loading message="Loading staff list..." />;
@@ -430,11 +527,22 @@ const AdminStaff = () => {
                           type="button"
                           className="btn btn-action btn-cancel"
                           onClick={() => handleRemoveStaff(staff)}
-                          disabled={processingId === staff.id}
+                          disabled={processingId === staff.id || deleteLoading}
                           title="Remove Staff Privileges (Return to User role)"
                         >
                           <UserX size={14} />
                           <span>Remove Staff</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-action btn-cancel"
+                          onClick={() => handleOpenDeleteModal(staff)}
+                          disabled={processingId === staff.id || deleteLoading}
+                          title="Permanently Delete Staff Account"
+                          style={{ borderColor: '#fca5a5', color: '#dc2626' }}
+                        >
+                          <Trash2 size={14} />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </td>
@@ -536,7 +644,7 @@ const AdminStaff = () => {
                   id="newStaffEmail"
                   type="email"
                   className="form-input"
-                  placeholder="e.g. staff@school.edu"
+                  placeholder="Enter staff email address"
                   value={newStaffEmail}
                   onChange={(e) => setNewStaffEmail(e.target.value)}
                   disabled={creating}
@@ -771,6 +879,144 @@ const AdminStaff = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          DELETE STAFF ACCOUNT CONFIRMATION MODAL
+          ========================================================================= */}
+      {deletingStaff && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-staff-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleteLoading) {
+              handleCloseDeleteModal();
+            }
+          }}
+        >
+          <div className="modal-box modal-box-sm">
+            <div className="delete-confirm-header" style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div
+                className="delete-confirm-icon"
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fecaca',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <Trash2 size={22} />
+              </div>
+              <div>
+                <h2 id="delete-staff-title" className="modal-title" style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                  Delete Staff Account?
+                </h2>
+                <p className="modal-subtitle" style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                  This action permanently removes the staff account from Supabase Auth.
+                </p>
+              </div>
+            </div>
+
+            {/* Account Details Box */}
+            <div
+              className="delete-account-details-box"
+              style={{
+                background: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                padding: '0.875rem 1rem',
+                margin: '1rem 0'
+              }}
+            >
+              <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.875rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>Name:</span>
+                  <strong style={{ color: '#0f172a' }}>{deletingStaff.full_name || 'N/A'}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>Email:</span>
+                  <strong style={{ color: '#0f172a' }}>{deletingStaff.email}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>Role:</span>
+                  <span className="sidebar-role-pill role-staff" style={{ margin: 0 }}>
+                    Staff
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>Status:</span>
+                  <span className={`status-badge ${deletingStaff.status === 'active' ? 'status-completed' : 'status-cancelled'}`}>
+                    {deletingStaff.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Data Retention Notice */}
+            <div
+              style={{
+                fontSize: '0.8125rem',
+                color: '#15803d',
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '6px',
+                padding: '0.625rem 0.75rem',
+                marginBottom: '1rem',
+                display: 'flex',
+                gap: '0.5rem',
+                alignItems: 'flex-start'
+              }}
+            >
+              <ShieldAlert size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+              <span>
+                <strong>Data Retention:</strong> Print jobs and queue records handled by this staff member will be preserved safely.
+              </span>
+            </div>
+
+            {deleteModalError && (
+              <div className="modal-error-banner" role="alert" style={{ marginBottom: '1rem' }}>
+                <AlertCircle size={16} />
+                <span>{deleteModalError}</span>
+              </div>
+            )}
+
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={handleCloseDeleteModal}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                style={{
+                  background: '#dc2626',
+                  borderColor: '#dc2626',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <Trash2 size={15} />
+                <span>{deleteLoading ? 'Deleting Account...' : 'Confirm Delete'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
