@@ -208,6 +208,7 @@ const StaffPrintRequests = () => {
                 <th>Document</th>
                 <th>Pages</th>
                 <th>Copies</th>
+                <th>Paper Size</th>
                 <th>Color</th>
                 <th>Type</th>
                 <th>Notes</th>
@@ -219,7 +220,7 @@ const StaffPrintRequests = () => {
             <tbody>
               {filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={10} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  <td colSpan={11} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                     No print requests found.
                   </td>
                 </tr>
@@ -263,6 +264,7 @@ const StaffPrintRequests = () => {
                     </td>
                     <td><span className="num-pill">{job.pages}</span></td>
                     <td><span className="num-pill">{job.copies}</span></td>
+                    <td><span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span></td>
                     <td><span className={`color-pill ${job.color ? 'is-color' : 'is-bw'}`}>{job.color ? 'Color' : 'B&W'}</span></td>
                     <td><span className="num-pill">{job.print_type || 'standard'}</span></td>
                     <td><span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{job.notes || '-'}</span></td>

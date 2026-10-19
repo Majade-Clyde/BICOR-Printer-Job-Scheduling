@@ -32,6 +32,7 @@ ALTER TABLE public.print_jobs
 ALTER TABLE public.print_jobs ADD COLUMN IF NOT EXISTS assigned_staff_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
 ALTER TABLE public.print_jobs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now());
 ALTER TABLE public.print_jobs ADD COLUMN IF NOT EXISTS print_type TEXT DEFAULT 'standard';
+ALTER TABLE public.print_jobs ADD COLUMN IF NOT EXISTS paper_size TEXT DEFAULT 'Short (8.5 × 11 inches)';
 ALTER TABLE public.print_jobs ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
 
 -- 4. Drop old helper functions and recreate for new roles

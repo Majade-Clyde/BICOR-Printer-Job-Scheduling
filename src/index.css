@@ -2101,6 +2101,89 @@ textarea {
   color: var(--text-muted);
 }
 
+/* Paper Size Radio Cards */
+.paper-size-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.paper-size-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: #ffffff;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.paper-size-card:hover {
+  border-color: #cbd5e1;
+}
+
+.paper-size-card.selected {
+  border-color: var(--purple-primary);
+  background: var(--purple-light);
+  box-shadow: 0 0 0 1px var(--purple-primary);
+}
+
+.paper-size-card input[type="radio"] {
+  accent-color: var(--purple-primary);
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.paper-size-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.paper-size-title {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.paper-size-card.selected .paper-size-title {
+  color: var(--purple-hover);
+}
+
+.paper-size-desc {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.paper-size-card.selected .paper-size-desc {
+  color: var(--purple-primary);
+}
+
+/* Paper Size Pill in Tables / Badges */
+.paper-size-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+  white-space: nowrap;
+}
+
 .form-summary-pill {
   display: flex;
   align-items: center;
@@ -3281,6 +3364,7 @@ textarea {
 
   .form-row-2,
   .color-options-grid,
+  .paper-size-grid,
   .operator-filter-controls {
     grid-template-columns: 1fr;
   }

@@ -182,6 +182,7 @@ const AdminDashboard = () => {
                   <th>Document</th>
                   <th>Pages</th>
                   <th>Copies</th>
+                  <th>Paper Size</th>
                   <th>Submitted</th>
                   <th>Status</th>
                 </tr>
@@ -247,6 +248,7 @@ const AdminDashboard = () => {
                       </td>
                       <td><span className="num-pill">{job.pages ?? 0}</span></td>
                       <td><span className="num-pill">{job.copies ?? 0}</span></td>
+                      <td><span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span></td>
                       <td><span className="time-text">{formattedDate}</span></td>
                       <td><span className={statusColors[job.status] || 'status-badge status-pending'}>{job.status || 'Pending'}</span></td>
                     </tr>

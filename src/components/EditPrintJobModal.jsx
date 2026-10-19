@@ -16,12 +16,7 @@ import {
 } from 'lucide-react';
 import { getJobDocuments, formatFileSize } from '../lib/storage';
 
-const PRINT_TYPES = [
-  { value: 'standard', label: 'Standard' },
-  { value: 'photo', label: 'Photo Print' },
-  { value: 'thick', label: 'Thick Paper' },
-  { value: 'legal', label: 'Legal Size' },
-];
+import { PAPER_SIZES, PRINT_TYPES } from '../lib/constants';
 
 /**
  * EditPrintJobModal
@@ -37,6 +32,7 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
   const [documentName, setDocumentName] = useState(job?.document_name ?? '');
   const [pages, setPages] = useState(String(job?.pages ?? 1));
   const [copies, setCopies] = useState(String(job?.copies ?? 1));
+  const [paperSize, setPaperSize] = useState(job?.paper_size || 'Short (8.5 × 11 inches)');
   const [printType, setPrintType] = useState(job?.print_type ?? 'standard');
   const [isColor, setIsColor] = useState(Boolean(job?.color));
   const [notes, setNotes] = useState(job?.notes ?? '');
@@ -54,6 +50,7 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
       setDocumentName(job.document_name ?? '');
       setPages(String(job.pages ?? 1));
       setCopies(String(job.copies ?? 1));
+      setPaperSize(job.paper_size || 'Short (8.5 × 11 inches)');
       setPrintType(job.print_type ?? 'standard');
       setIsColor(Boolean(job.color));
       setNotes(job.notes ?? '');
@@ -98,6 +95,11 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
       return;
     }
 
+    if (!paperSize) {
+      setFormError('Paper Size is required. Please select a paper size.');
+      return;
+    }
+
     const validPrintTypes = ['standard', 'photo', 'thick', 'legal'];
     const safePrintType = validPrintTypes.includes(printType) ? printType : 'standard';
 
@@ -115,6 +117,7 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
       document_name: trimmedDoc,
       pages: parsedPages,
       copies: parsedCopies,
+      paper_size: paperSize,
       print_type: safePrintType,
       color: Boolean(isColor),
       notes: notes.trim(),
@@ -122,7 +125,7 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
     };
 
     try {
-      const { data, error: updateError } = await supabase
+      let { data, error: updateError } = await supabase
         .from('print_jobs')
         .update(updateData)
         // Ensure student can only update their own Pending job
@@ -131,6 +134,23 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
         .eq('status', 'Pending')
         .select()
         .maybeSingle();
+
+      // Fallback if paper_size column hasn't been added to database yet
+      if (updateError && updateError.message?.includes('paper_size')) {
+        console.warn('paper_size column not found in database. Retrying update without paper_size.', updateError);
+        const fallbackData = { ...updateData };
+        delete fallbackData.paper_size;
+        const retry = await supabase
+          .from('print_jobs')
+          .update(fallbackData)
+          .eq('id', job.id)
+          .eq('user_id', user.id)
+          .eq('status', 'Pending')
+          .select()
+          .maybeSingle();
+        data = retry.data;
+        updateError = retry.error;
+      }
 
       if (updateError) {
         console.error('UPDATE PRINT JOB ERROR:', updateError);
@@ -292,6 +312,29 @@ const EditPrintJobModal = ({ job, onClose, onSaved }) => {
                 required
               />
             </div>
+          </div>
+
+          {/* Paper Size */}
+          <div className="form-group">
+            <label htmlFor="edit-paperSize" className="form-label">
+              <FileText size={15} />
+              <span>Paper Size</span>
+              <span className="required-star">*</span>
+            </label>
+            <select
+              id="edit-paperSize"
+              className="form-input"
+              value={paperSize}
+              onChange={(e) => setPaperSize(e.target.value)}
+              disabled={loading}
+              required
+            >
+              {PAPER_SIZES.map((ps) => (
+                <option key={ps.id} value={ps.value}>
+                  {ps.value}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Print Type */}

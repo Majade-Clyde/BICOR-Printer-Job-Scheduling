@@ -122,6 +122,7 @@ const StaffDashboard = () => {
                       <span>User: <strong>{next.student_name}</strong></span>
                       <span>• Pages: <strong>{next.pages}</strong></span>
                       <span>• Copies: <strong>{next.copies}</strong></span>
+                      <span>• Paper Size: <strong>{next.paper_size || 'Short (8.5 × 11 in)'}</strong></span>
                       <span>• Mode: <strong>{next.color ? 'Color' : 'B&W'}</strong></span>
                     </div>
                   </div>

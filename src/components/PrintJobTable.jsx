@@ -51,6 +51,7 @@ const PrintJobTable = ({
               <th className="th-doc">Document</th>
               <th className="th-pages">Pages</th>
               <th className="th-copies">Copies</th>
+              <th className="th-paper-size">Paper Size</th>
               <th className="th-color">Color</th>
               <th className="th-time">Submitted Time</th>
               <th className="th-status">Status</th>
@@ -129,6 +130,10 @@ const PrintJobTable = ({
 
                   <td className="td-copies">
                     <span className="num-pill">{job.copies}</span>
+                  </td>
+
+                  <td className="td-paper-size">
+                    <span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span>
                   </td>
 
                   <td className="td-color">

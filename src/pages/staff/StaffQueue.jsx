@@ -177,6 +177,7 @@ const StaffQueue = () => {
                       <span>User: <strong>{pJob.student_name}</strong></span>
                       <span>• Pages: <strong>{pJob.pages}</strong></span>
                       <span>• Copies: <strong>{pJob.copies}</strong></span>
+                      <span>• Paper Size: <strong>{pJob.paper_size || 'Short (8.5 × 11 in)'}</strong></span>
                       <span>• Mode: <strong>{pJob.color ? 'Color' : 'B&W'}</strong></span>
                     </div>
                   </div>
@@ -235,6 +236,7 @@ const StaffQueue = () => {
                   <th>Document</th>
                   <th>Pages</th>
                   <th>Copies</th>
+                  <th>Paper Size</th>
                   <th>Color</th>
                   <th>Type</th>
                   <th>Submitted</th>
@@ -278,6 +280,7 @@ const StaffQueue = () => {
                       </td>
                       <td><span className="num-pill">{job.pages}</span></td>
                       <td><span className="num-pill">{job.copies}</span></td>
+                      <td><span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span></td>
                       <td><span className={`color-pill ${job.color ? 'is-color' : 'is-bw'}`}>{job.color ? 'Color' : 'B&W'}</span></td>
                       <td><span className="num-pill">{job.print_type || 'standard'}</span></td>
                       <td><span className="time-text">{formatTime(job.submitted_at)}</span></td>

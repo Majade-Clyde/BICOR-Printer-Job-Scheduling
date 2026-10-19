@@ -132,6 +132,7 @@ const StaffCompleted = () => {
                   <th>Document</th>
                   <th>Pages</th>
                   <th>Copies</th>
+                  <th>Paper Size</th>
                   <th>Color</th>
                   <th>Submitted</th>
                   <th>Completed At</th>
@@ -174,6 +175,7 @@ const StaffCompleted = () => {
                       </td>
                       <td><span className="num-pill">{job.pages}</span></td>
                       <td><span className="num-pill">{job.copies}</span></td>
+                      <td><span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span></td>
                       <td><span className={`color-pill ${job.color ? 'is-color' : 'is-bw'}`}>{job.color ? 'Color' : 'B&W'}</span></td>
                       <td><span className="time-text">{formatTime(job.submitted_at)}</span></td>
                       <td><span className="time-text">{formatTime(job.updated_at || job.submitted_at)}</span></td>

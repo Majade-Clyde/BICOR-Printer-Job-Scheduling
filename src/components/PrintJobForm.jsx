@@ -28,12 +28,7 @@ import {
   ALLOWED_EXTENSIONS
 } from '../lib/storage';
 
-const PRINT_TYPES = [
-  { value: 'standard', label: 'Standard' },
-  { value: 'photo', label: 'Photo Print' },
-  { value: 'thick', label: 'Thick Paper' },
-  { value: 'legal', label: 'Legal Size' },
-];
+import { PAPER_SIZES, PRINT_TYPES } from '../lib/constants';
 
 const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
   const { user, profile } = useAuth();
@@ -43,6 +38,7 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
   const [documentName, setDocumentName] = useState('');
   const [pages, setPages] = useState('1');
   const [copies, setCopies] = useState('1');
+  const [paperSize, setPaperSize] = useState('Short (8.5 × 11 inches)');
   const [printType, setPrintType] = useState('standard');
   const [isColor, setIsColor] = useState(false);
   const [notes, setNotes] = useState('');
@@ -186,6 +182,11 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
       return;
     }
 
+    if (!paperSize) {
+      setError('Paper Size is required. Please select Long, Short, or A4.');
+      return;
+    }
+
     if (!user) {
       setError('You must be logged in to submit a print request.');
       return;
@@ -234,6 +235,7 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
         document_name: trimmedDocName,
         pages: parsedPages,
         copies: parsedCopies,
+        paper_size: paperSize,
         print_type: printType,
         color: Boolean(isColor),
         notes: notes.trim(),
@@ -248,9 +250,18 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
         file_url: primaryDoc?.file_url || null,
       };
 
-      const { error: insertError } = await supabase
+      let { error: insertError } = await supabase
         .from('print_jobs')
         .insert([jobPayload]);
+
+      // Graceful resilience if database column has not been added yet in Supabase
+      if (insertError && insertError.message?.includes('paper_size')) {
+        console.warn('paper_size column not found in database. Retrying insert without paper_size.', insertError);
+        const fallbackPayload = { ...jobPayload };
+        delete fallbackPayload.paper_size;
+        const retry = await supabase.from('print_jobs').insert([fallbackPayload]);
+        insertError = retry.error;
+      }
 
       if (insertError) throw insertError;
 
@@ -259,6 +270,7 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
       setSelectedFiles([]);
       setPages('1');
       setCopies('1');
+      setPaperSize('Short (8.5 × 11 inches)');
       setPrintType('standard');
       setIsColor(false);
       setNotes('');
@@ -503,6 +515,29 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
           </div>
         </div>
 
+        {/* Paper Size Dropdown */}
+        <div className="form-group">
+          <label htmlFor="paperSize" className="form-label">
+            <FileText size={16} />
+            <span>Paper Size</span>
+            <span className="required-star">*</span>
+          </label>
+          <select
+            id="paperSize"
+            className="form-input"
+            value={paperSize}
+            onChange={(e) => setPaperSize(e.target.value)}
+            disabled={loading}
+            required
+          >
+            {PAPER_SIZES.map((ps) => (
+              <option key={ps.id} value={ps.value}>
+                {ps.value}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="form-group">
           <label htmlFor="printType" className="form-label">
             <FileText size={16} />
@@ -574,6 +609,7 @@ const PrintJobForm = ({ redirectTo = '/student/my-requests' }) => {
 
         <div className="form-summary-pill">
           <span>Estimated Total Pages: <strong>{(parseInt(pages, 10) || 0) * (parseInt(copies, 10) || 0)} pages</strong></span>
+          <span>Paper Size: <strong>{paperSize || 'Not selected'}</strong></span>
           <span>Color: <strong>{isColor ? 'Yes' : 'No'}</strong></span>
           {selectedFiles.length > 0 && (
             <span>Attached: <strong>{selectedFiles.length} {selectedFiles.length === 1 ? 'file' : 'files'} ({formatFileSize(totalFilesSize)})</strong></span>

@@ -293,6 +293,7 @@ const OperatorDashboard = () => {
                     <span>User: <strong>{pJob.student_name}</strong> ({pJob.email})</span>
                     <span>• Pages: <strong>{pJob.pages}</strong></span>
                     <span>• Copies: <strong>{pJob.copies}</strong></span>
+                    <span>• Paper Size: <strong>{pJob.paper_size || 'Short (8.5 × 11 in)'}</strong></span>
                     <span>• Mode: <strong>{pJob.color ? 'Color' : 'B&W'}</strong></span>
                     <span>• Submitted: <strong>{formatTime(pJob.submitted_at)}</strong></span>
                   </div>

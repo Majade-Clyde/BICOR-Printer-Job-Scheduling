@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.print_jobs (
   document_name TEXT NOT NULL,
   pages INTEGER NOT NULL CHECK (pages > 0),
   copies INTEGER NOT NULL CHECK (copies > 0),
+  paper_size TEXT NOT NULL DEFAULT 'Short (8.5 × 11 inches)',
   color BOOLEAN NOT NULL DEFAULT false,
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
   status TEXT NOT NULL CHECK (status IN ('Pending', 'Printing', 'Completed', 'Cancelled')) DEFAULT 'Pending'

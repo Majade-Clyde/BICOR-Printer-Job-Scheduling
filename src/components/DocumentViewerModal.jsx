@@ -174,7 +174,7 @@ const DocumentViewerModal = ({ job, onClose }) => {
                 </span>
                 <span className="doc-viewer-dot">•</span>
                 <span className="doc-viewer-print-specs">
-                  {job.pages} pgs • {job.copies} {job.copies === 1 ? 'copy' : 'copies'} • {job.color ? 'Color' : 'B&W'}
+                  {job.pages} pgs • {job.copies} {job.copies === 1 ? 'copy' : 'copies'} • {job.paper_size || 'Short (8.5 × 11 inches)'} • {job.color ? 'Color' : 'B&W'}
                 </span>
               </div>
             </div>

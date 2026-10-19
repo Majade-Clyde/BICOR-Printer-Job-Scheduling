@@ -90,7 +90,7 @@ const AdminQueue = () => {
           </div>
           <div className="table-responsive">
             <table className="print-table">
-              <thead><tr><th>User</th><th>Document</th><th>Pages</th><th>Copies</th><th>Color</th><th>Submitted</th><th>Status</th></tr></thead>
+              <thead><tr><th>User</th><th>Document</th><th>Pages</th><th>Copies</th><th>Paper Size</th><th>Color</th><th>Submitted</th><th>Status</th></tr></thead>
               <tbody>
                 {printingJobs.map(job => {
                   const docs = getJobDocuments(job);
@@ -126,6 +126,7 @@ const AdminQueue = () => {
                       </td>
                       <td><span className="num-pill">{job.pages}</span></td>
                       <td><span className="num-pill">{job.copies}</span></td>
+                      <td><span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span></td>
                       <td><span className={`color-pill ${job.color ? 'is-color' : 'is-bw'}`}>{job.color ? 'Color' : 'B&W'}</span></td>
                       <td><span className="time-text">{formatTime(job.submitted_at)}</span></td>
                       <td><StatusBadge status={job.status} /></td>
@@ -151,10 +152,10 @@ const AdminQueue = () => {
         </div>
         <div className="table-responsive">
           <table className="print-table">
-            <thead><tr><th>#</th><th>User</th><th>Document</th><th>Pages</th><th>Copies</th><th>Submitted</th><th>Status</th></tr></thead>
+            <thead><tr><th>#</th><th>User</th><th>Document</th><th>Pages</th><th>Copies</th><th>Paper Size</th><th>Submitted</th><th>Status</th></tr></thead>
             <tbody>
               {pendingJobs.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>No pending requests.</td></tr>
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>No pending requests.</td></tr>
               ) : pendingJobs.map((job, idx) => {
                 const docs = getJobDocuments(job);
                 return (
@@ -190,6 +191,7 @@ const AdminQueue = () => {
                     </td>
                     <td><span className="num-pill">{job.pages}</span></td>
                     <td><span className="num-pill">{job.copies}</span></td>
+                    <td><span className="paper-size-pill">{job.paper_size || 'Short (8.5 × 11 in)'}</span></td>
                     <td><span className="time-text">{formatTime(job.submitted_at)}</span></td>
                     <td><StatusBadge status={job.status} /></td>
                   </tr>
