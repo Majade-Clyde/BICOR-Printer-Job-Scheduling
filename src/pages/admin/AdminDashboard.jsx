@@ -138,7 +138,7 @@ const AdminDashboard = () => {
       <ErrorMessage message={error} onDismiss={() => setError('')} />
 
       {rlsNotice && (
-        <div className="info-callout" style={{ borderLeftColor: '#f59e0b', marginBottom: '1.5rem', background: 'rgba(245, 158, 11, 0.08)' }}>
+        <div className="info-callout" style={{ borderLeftColor: '#f59e0b', background: 'rgba(245, 158, 11, 0.08)' }}>
           <div className="info-callout-icon" style={{ color: '#f59e0b' }}>
             <AlertTriangle size={20} />
           </div>

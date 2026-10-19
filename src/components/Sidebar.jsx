@@ -14,7 +14,6 @@ import {
   ClipboardList,
   CheckSquare,
   ListOrdered,
-  Sparkles,
   User
 } from 'lucide-react';
 
@@ -270,16 +269,6 @@ const Sidebar = ({ isOpen, onClose }) => {
             </ul>
           )}
         </nav>
-
-        <div className="sidebar-fcfs-info">
-          <div className="fcfs-badge">
-            <Sparkles size={14} />
-            <span>FCFS Algorithm</span>
-          </div>
-          <p className="fcfs-desc">
-            Jobs are scheduled in exact order of arrival (<code>created_at ASC</code>).
-          </p>
-        </div>
       </aside>
     </>
   );

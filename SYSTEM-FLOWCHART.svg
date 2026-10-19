@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1320" role="img" aria-labelledby="title description">
+  <title id="title">Printer Job Scheduler System Flow</title>
+  <desc id="description">Flow chart of authentication, role-based access, student print requests, Supabase storage and queue, staff job processing, and admin monitoring.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#c2410c"/>
+    </marker>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #172033; }
+      .title { font-size: 34px; font-weight: 700; fill: #fff; }
+      .subtitle { font-size: 16px; fill: #dbeafe; }
+      .lane-title { font-size: 17px; font-weight: 700; letter-spacing: 1.2px; }
+      .node-title { font-size: 16px; font-weight: 700; }
+      .node-copy { font-size: 13px; fill: #475569; }
+      .label { font-size: 12px; font-weight: 700; fill: #475569; }
+      .small { font-size: 12px; fill: #475569; }
+      .box { stroke-width: 2; rx: 14; }
+      .arrow { fill: none; stroke: #64748b; stroke-width: 2.5; marker-end: url(#arrow); }
+      .arrow-blue { fill: none; stroke: #2563eb; stroke-width: 2.5; marker-end: url(#arrowBlue); }
+      .arrow-teal { fill: none; stroke: #0f766e; stroke-width: 2.5; marker-end: url(#arrowTeal); }
+      .arrow-orange { fill: none; stroke: #c2410c; stroke-width: 2.5; marker-end: url(#arrowOrange); }
+      .realtime { fill: none; stroke: #7c3aed; stroke-width: 2.3; stroke-dasharray: 7 6; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1320" fill="#f4f7fb"/>
+  <rect x="0" y="0" width="1800" height="94" fill="#142b4a"/>
+  <text class="title" x="52" y="46">Printer Job Scheduler</text>
+  <text class="subtitle" x="54" y="73">System flow • Role-based access • First-come, first-served print queue</text>
+
+  <!-- Authentication and role resolution -->
+  <rect x="35" y="116" width="1730" height="278" rx="18" fill="#fff" stroke="#dbe3ef"/>
+  <text class="lane-title" x="60" y="148" fill="#334155">1  AUTHENTICATION &amp; ROLE ROUTING</text>
+
+  <rect class="box" x="65" y="203" width="145" height="66" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="node-title" x="137" y="230" text-anchor="middle">Visitor</text>
+  <text class="node-copy" x="137" y="250" text-anchor="middle">Open application</text>
+
+  <rect class="box" x="260" y="203" width="175" height="66" fill="#eff6ff" stroke="#60a5fa"/>
+  <text class="node-title" x="347" y="230" text-anchor="middle">React application</text>
+  <text class="node-copy" x="347" y="250" text-anchor="middle">Routes and UI</text>
+
+  <polygon points="520,187 580,236 520,285 460,236" fill="#fff7ed" stroke="#fb923c" stroke-width="2"/>
+  <text class="node-title" x="520" y="232" text-anchor="middle">Signed</text>
+  <text class="node-title" x="520" y="251" text-anchor="middle">in?</text>
+
+  <rect class="box" x="635" y="203" width="170" height="66" fill="#fff7ed" stroke="#fb923c"/>
+  <text class="node-title" x="720" y="230" text-anchor="middle">Login / register</text>
+  <text class="node-copy" x="720" y="250" text-anchor="middle">Credentials submitted</text>
+
+  <rect class="box" x="855" y="203" width="170" height="66" fill="#f0fdfa" stroke="#2dd4bf"/>
+  <text class="node-title" x="940" y="230" text-anchor="middle">Supabase Auth</text>
+  <text class="node-copy" x="940" y="250" text-anchor="middle">Verify identity / session</text>
+
+  <rect class="box" x="1075" y="203" width="180" height="66" fill="#f0fdfa" stroke="#2dd4bf"/>
+  <text class="node-title" x="1165" y="230" text-anchor="middle">Load user profile</text>
+  <text class="node-copy" x="1165" y="250" text-anchor="middle">Resolve role and status</text>
+
+  <polygon points="1360,187 1420,236 1360,285 1300,236" fill="#fff7ed" stroke="#fb923c" stroke-width="2"/>
+  <text class="node-title" x="1360" y="232" text-anchor="middle">Account</text>
+  <text class="node-title" x="1360" y="251" text-anchor="middle">active?</text>
+
+  <rect class="box" x="1480" y="172" width="235" height="58" fill="#fef2f2" stroke="#f87171"/>
+  <text class="node-title" x="1597" y="197" text-anchor="middle">Sign out / block access</text>
+  <text class="node-copy" x="1597" y="216" text-anchor="middle">Inactive or deleted account</text>
+
+  <rect class="box" x="1480" y="250" width="235" height="68" fill="#eef2ff" stroke="#818cf8"/>
+  <text class="node-title" x="1597" y="278" text-anchor="middle">Route by profile role</text>
+  <text class="node-copy" x="1597" y="299" text-anchor="middle">Student • Staff • Admin</text>
+
+  <path class="arrow" d="M210 236H255"/>
+  <path class="arrow" d="M435 236H454"/>
+  <path class="arrow" d="M580 236H630"/>
+  <text class="label" x="602" y="225">No</text>
+  <path class="arrow" d="M805 236H850"/>
+  <path class="arrow" d="M1025 236H1070"/>
+  <path class="arrow" d="M1255 236H1294"/>
+  <path class="arrow" d="M1420 236H1450V201H1475"/>
+  <text class="label" x="1430" y="225">No</text>
+  <path class="arrow" d="M1420 236H1450V284H1475"/>
+  <text class="label" x="1430" y="270">Yes</text>
+  <path class="arrow-blue" d="M520 187V167H1165V198"/>
+  <text class="label" x="808" y="161" fill="#2563eb">Yes — existing session</text>
+
+  <!-- Role-specific workflows -->
+  <rect x="35" y="416" width="1730" height="447" rx="18" fill="#fff" stroke="#dbe3ef"/>
+  <text class="lane-title" x="60" y="448" fill="#334155">2  ROLE WORKFLOWS</text>
+  <rect x="55" y="468" width="540" height="372" rx="16" fill="#eff6ff" stroke="#bfdbfe"/>
+  <rect x="630" y="468" width="540" height="372" rx="16" fill="#f0fdfa" stroke="#99f6e4"/>
+  <rect x="1205" y="468" width="540" height="372" rx="16" fill="#f5f3ff" stroke="#ddd6fe"/>
+  <text class="lane-title" x="80" y="500" fill="#1d4ed8">STUDENT</text>
+  <text class="lane-title" x="655" y="500" fill="#0f766e">STAFF / OPERATOR</text>
+  <text class="lane-title" x="1230" y="500" fill="#6d28d9">ADMIN</text>
+
+  <rect class="box" x="150" y="532" width="350" height="58" fill="#fff" stroke="#60a5fa"/>
+  <text class="node-title" x="325" y="557" text-anchor="middle">Student dashboard</text>
+  <text class="node-copy" x="325" y="577" text-anchor="middle">Submit and view own requests</text>
+  <rect class="box" x="150" y="623" width="350" height="58" fill="#fff" stroke="#60a5fa"/>
+  <text class="node-title" x="325" y="648" text-anchor="middle">Enter print details</text>
+  <text class="node-copy" x="325" y="668" text-anchor="middle">Document, pages, copies, options, notes</text>
+  <polygon points="325,700 380,740 325,780 270,740" fill="#fff" stroke="#fb923c" stroke-width="2"/>
+  <text class="node-title" x="325" y="736" text-anchor="middle">Valid</text>
+  <text class="node-title" x="325" y="754" text-anchor="middle">request?</text>
+  <path class="arrow-blue" d="M325 318V430H325V527"/>
+  <text class="label" x="338" y="424" fill="#2563eb">Student</text>
+  <path class="arrow-blue" d="M325 590V618"/>
+  <path class="arrow-blue" d="M325 681V696"/>
+  <rect class="box" x="76" y="793" width="160" height="35" fill="#fff7ed" stroke="#fb923c"/>
+  <text class="small" x="156" y="816" text-anchor="middle">Show validation error</text>
+  <path class="arrow-orange" d="M270 740H235V788"/>
+  <text class="label" x="239" y="732">No</text>
+  <path class="arrow" d="M76 810H65V652H145"/>
+  <text class="label" x="74" y="644">Retry</text>
+
+  <rect class="box" x="720" y="532" width="360" height="58" fill="#fff" stroke="#2dd4bf"/>
+  <text class="node-title" x="900" y="557" text-anchor="middle">Staff dashboard and print queue</text>
+  <text class="node-copy" x="900" y="577" text-anchor="middle">Live queue ordered by submission time</text>
+  <rect class="box" x="720" y="623" width="360" height="58" fill="#fff" stroke="#2dd4bf"/>
+  <text class="node-title" x="900" y="648" text-anchor="middle">Select next Pending job</text>
+  <text class="node-copy" x="900" y="668" text-anchor="middle">First-come, first-served</text>
+  <polygon points="900,700 965,740 900,780 835,740" fill="#fff" stroke="#fb923c" stroke-width="2"/>
+  <text class="node-title" x="900" y="736" text-anchor="middle">Start or</text>
+  <text class="node-title" x="900" y="754" text-anchor="middle">cancel?</text>
+  <path class="arrow-teal" d="M1597 318V430H900V527"/>
+  <text class="label" x="1030" y="424" fill="#0f766e">Staff / operator</text>
+  <path class="arrow-teal" d="M900 590V618"/>
+  <path class="arrow-teal" d="M900 681V696"/>
+  <rect class="box" x="660" y="793" width="220" height="35" fill="#fff" stroke="#2dd4bf"/>
+  <text class="small" x="770" y="816" text-anchor="middle">Pending → Cancelled</text>
+  <rect class="box" x="915" y="793" width="220" height="35" fill="#fff" stroke="#2dd4bf"/>
+  <text class="small" x="1025" y="816" text-anchor="middle">Printing → Completed</text>
+  <path class="arrow-teal" d="M835 740H775V788"/>
+  <text class="label" x="790" y="732">Cancel</text>
+  <path class="arrow-teal" d="M965 740H1025V788"/>
+  <text class="label" x="974" y="732">Print</text>
+
+  <rect class="box" x="1290" y="532" width="370" height="58" fill="#fff" stroke="#a78bfa"/>
+  <text class="node-title" x="1475" y="557" text-anchor="middle">Admin dashboard</text>
+  <text class="node-copy" x="1475" y="577" text-anchor="middle">Users, staff, print jobs and queue</text>
+  <rect class="box" x="1290" y="623" width="370" height="58" fill="#fff" stroke="#a78bfa"/>
+  <text class="node-title" x="1475" y="648" text-anchor="middle">Monitor active print queue</text>
+  <text class="node-copy" x="1475" y="668" text-anchor="middle">Read-only queue view with live updates</text>
+  <path class="arrow" d="M1597 318V430H1475V527"/>
+  <text class="label" x="1490" y="424" fill="#6d28d9">Admin</text>
+  <path class="arrow" d="M1475 590V618"/>
+
+  <!-- Supabase services and data -->
+  <rect x="35" y="887" width="1730" height="393" rx="18" fill="#fff" stroke="#dbe3ef"/>
+  <text class="lane-title" x="60" y="920" fill="#334155">3  SUPABASE SERVICES, QUEUE &amp; DATA</text>
+
+  <rect class="box" x="95" y="979" width="295" height="112" fill="#f0fdfa" stroke="#2dd4bf"/>
+  <text class="node-title" x="242" y="1012" text-anchor="middle">Supabase Storage</text>
+  <text class="node-copy" x="242" y="1037" text-anchor="middle">print-documents bucket</text>
+  <text class="node-copy" x="242" y="1058" text-anchor="middle">Validated document uploads</text>
+
+  <rect class="box" x="505" y="979" width="320" height="112" fill="#eff6ff" stroke="#60a5fa"/>
+  <text class="node-title" x="665" y="1012" text-anchor="middle">Create print job</text>
+  <text class="node-copy" x="665" y="1037" text-anchor="middle">Store details, file references, owner</text>
+  <text class="node-copy" x="665" y="1058" text-anchor="middle">Initial status: Pending</text>
+
+  <rect class="box" x="935" y="979" width="350" height="112" fill="#eef2ff" stroke="#818cf8"/>
+  <text class="node-title" x="1110" y="1012" text-anchor="middle">Supabase PostgreSQL</text>
+  <text class="node-copy" x="1110" y="1037" text-anchor="middle">profiles • print_jobs</text>
+  <text class="node-copy" x="1110" y="1058" text-anchor="middle">Realtime changes on print_jobs</text>
+
+  <rect class="box" x="1395" y="979" width="295" height="112" fill="#fff7ed" stroke="#fb923c"/>
+  <text class="node-title" x="1542" y="1012" text-anchor="middle">Row-level security</text>
+  <text class="node-copy" x="1542" y="1037" text-anchor="middle">Enforce role and ownership</text>
+  <text class="node-copy" x="1542" y="1058" text-anchor="middle">Student • Staff • Admin</text>
+
+  <rect class="box" x="465" y="1150" width="830" height="78" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="node-title" x="880" y="1181" text-anchor="middle">Print job status lifecycle</text>
+  <text class="node-copy" x="880" y="1206" text-anchor="middle">Pending → Printing → Completed  •  Pending → Cancelled  •  Printing → Cancelled</text>
+
+  <!-- Student submission connections -->
+  <path class="arrow-blue" d="M325 780V930H665V974"/>
+  <text class="label" x="470" y="921" fill="#2563eb">Valid request</text>
+  <path class="arrow-blue" d="M500 652H545V945H242V974"/>
+  <text class="label" x="400" y="941" fill="#2563eb">Optional documents</text>
+  <path class="arrow" d="M390 1035H500"/>
+  <text class="label" x="410" y="1026">File references</text>
+  <path class="arrow" d="M825 1035H930"/>
+  <path class="arrow-orange" d="M1285 1035H1390"/>
+  <path class="arrow" d="M1395 1072H1290"/>
+
+  <!-- Staff and admin data access / realtime -->
+  <path class="arrow-teal" d="M1025 828V914H1110V974"/>
+  <text class="label" x="1034" y="905" fill="#0f766e">Status updates</text>
+  <path class="realtime" d="M960 979V914H900V687"/>
+  <text class="label" x="815" y="910" fill="#7c3aed">Realtime queue updates</text>
+  <path class="realtime" d="M1250 979V930H1475V687"/>
+  <text class="label" x="1320" y="923" fill="#7c3aed">Read-only monitor</text>
+  <path class="arrow" d="M1475 681V915H1542V974"/>
+  <path class="arrow" d="M1542 979V915H1110V974"/>
+
+  <rect x="60" y="1140" width="345" height="82" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text class="node-title" x="82" y="1168">System notes</text>
+  <text class="small" x="82" y="1190">• Students can manage their own requests.</text>
+  <text class="small" x="82" y="1209">• Staff processes jobs; admin queue is read-only.</text>
+
+  <text class="small" x="1345" y="1174">Authentication and database access</text>
+  <text class="small" x="1345" y="1195">are enforced by Supabase policies.</text>
+</svg>

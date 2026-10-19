@@ -308,7 +308,7 @@ const AdminUsers = () => {
         </div>
 
         {/* Role Filter Tabs */}
-        <div className="filter-tabs" style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+        <div className="filter-tabs">
           <button
             type="button"
             className={`btn btn-sm ${roleFilter === 'all' ? 'btn-primary' : 'btn-outline'}`}
